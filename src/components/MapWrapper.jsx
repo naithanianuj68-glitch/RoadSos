@@ -31,48 +31,106 @@ function ClickableMarker({ poi, icon }) {
       }}
     >
       <Popup>
-        <strong>{poi.name}</strong><br/>
-        {poi.typeName}<br/>
-        {poi.phone && <a href={`tel:${poi.phone}`}>{poi.phone}</a>}
+        <div className="text-slate-900 font-sans p-1">
+          <strong className="text-sm font-bold text-red-600 block mb-0.5">{poi.name}</strong>
+          <span className="text-xs text-slate-500 block uppercase tracking-wider font-semibold mb-1">{poi.typeName}</span>
+          {poi.phone && (
+            <a 
+              href={`tel:${poi.phone}`} 
+              className="inline-block text-xs bg-red-600 text-white px-2 py-0.5 rounded font-bold hover:bg-red-700 transition"
+            >
+              📞 Call: {poi.phone}
+            </a>
+          )}
+        </div>
       </Popup>
     </Marker>
   );
 }
 
-export default function MapWrapper({ location, pois }) {
+export default function MapWrapper({ location, pois, isFullBleed }) {
   const center = location ? [location.lat, location.lng] : [20.5937, 78.9629]; 
 
   const getMarkerColor = (category) => {
     switch(category) {
-      case 'hospital': return '#dc2626'; // red-600
-      case 'pharmacy': return '#0d9488'; // teal-600
-      case 'police': return '#2563eb';   // blue-600
-      case 'fire': return '#ea580c';     // orange-600
-      case 'ambulance': return '#16a34a';// green-600
-      case 'mechanic': return '#ca8a04'; // yellow-600
-      case 'shelter': return '#9333ea';  // purple-600
-      default: return 'gray';
+      case 'hospital': return '#ef4444'; // red
+      case 'pharmacy': return '#0d9488'; // teal
+      case 'police': return '#3b82f6';   // blue
+      case 'fire': return '#f97316';     // orange
+      case 'ambulance': return '#10b981';// green
+      case 'mechanic': return '#eab308'; // yellow
+      default: return '#ef4444';
     }
   };
 
+  // Create custom marker matching the mockup style
   const createCustomIcon = (color) => {
     return L.divIcon({
-      className: 'custom-icon',
-      html: `<div style="background-color:${color}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>`,
-      iconSize: [20, 20],
-      iconAnchor: [10, 10]
+      className: 'custom-leaflet-icon',
+      html: `
+        <div style="position: relative; display: flex; align-items: center; justify-content: center;">
+          <div style="
+            position: absolute; 
+            width: 28px; 
+            height: 28px; 
+            border-radius: 50%; 
+            background-color: ${color}; 
+            opacity: 0.25; 
+            animation: pulse-ring 1.8s cubic-bezier(0.215, 0.610, 0.355, 1) infinite;
+          "></div>
+          <div style="
+            position: relative; 
+            background-color: ${color}; 
+            width: 14px; 
+            height: 14px; 
+            border-radius: 50%; 
+            border: 2px solid #ffffff; 
+            box-shadow: 0 0 8px ${color};
+          "></div>
+        </div>
+      `,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
     });
   };
 
+  const currentIcon = L.divIcon({
+    className: 'current-location-icon',
+    html: `
+      <div style="position: relative; display: flex; align-items: center; justify-content: center;">
+        <div style="
+          position: absolute; 
+          width: 32px; 
+          height: 32px; 
+          border-radius: 50%; 
+          background-color: #3b82f6; 
+          opacity: 0.3; 
+          animation: pulse-ring 2s cubic-bezier(0.215, 0.610, 0.355, 1) infinite;
+        "></div>
+        <div style="
+          position: relative; 
+          background-color: #3b82f6; 
+          width: 16px; 
+          height: 16px; 
+          border-radius: 50%; 
+          border: 2.5px solid #ffffff; 
+          box-shadow: 0 0 10px #3b82f6;
+        "></div>
+      </div>
+    `,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
+  });
+
   return (
-    <div className="h-64 w-full rounded-2xl overflow-hidden shadow-md border-2 border-gray-200 dark:border-gray-700 relative z-0">
-      <MapContainer center={center} zoom={14} style={{ height: '100%', width: '100%' }}>
+    <div className={`w-full ${isFullBleed ? 'h-full' : 'h-64 rounded-2xl'} overflow-hidden relative z-0`}>
+      <MapContainer center={center} zoom={15} style={{ height: '100%', width: '100%' }} zoomControl={!isFullBleed}>
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         />
         {location && (
-          <Marker position={[location.lat, location.lng]}>
+          <Marker position={[location.lat, location.lng]} icon={currentIcon}>
             <Popup>You are here</Popup>
           </Marker>
         )}

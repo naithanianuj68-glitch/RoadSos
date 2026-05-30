@@ -13,7 +13,7 @@ import AccidentHotspots from './components/AccidentHotspots';
 import { getCurrentLocation, getAddressFromCoords, getCoordsFromAddress } from './services/location';
 import { fetchEmergencyPOIs } from './services/overpass';
 import { saveOfflineData, getOfflineData } from './services/offlineStorage';
-import { AlertCircle, MapPin, RefreshCw, WifiOff, Beaker, Search, ShieldAlert, Cpu } from 'lucide-react';
+import { AlertCircle, MapPin, RefreshCw, WifiOff, Beaker, Search, ShieldAlert, Menu, X, Navigation } from 'lucide-react';
 import { MOCK_LOCATION, MOCK_ADDRESS, MOCK_POIS } from './services/mockData';
 
 function App() {
@@ -29,11 +29,14 @@ function App() {
   const [isSearchingLocation, setIsSearchingLocation] = useState(false);
   const [lastSynced, setLastSynced] = useState(null);
   
-  // Custom alerts matching the mockup
+  // Sidebar overlay inside phone
+  const [isPhoneMenuOpen, setIsPhoneMenuOpen] = useState(false);
+
+  // Custom alerts matching the mockup exactly
   const [mockAlerts] = useState([
-    { id: 1, title: 'OAK ST FIRE', type: 'fire', detail: 'Structural hazard reported' },
-    { id: 2, title: 'MEDICAL AID - 5TH AVE', type: 'medical', detail: 'Critical paramedic dispatch' },
-    { id: 3, title: 'POLICE ACTIVITY', type: 'police', detail: 'Active traffic redirection' }
+    { id: 1, title: 'OAK ST FIRE', subtitle: 'ACTIVE FIRE OUTBREAK', type: 'fire', icon: '🔥' },
+    { id: 2, title: 'MEDICAL AID - 5TH AVE', subtitle: 'AMBULANCE RESPONDING', type: 'medical', icon: '🩺' },
+    { id: 3, title: 'POLICE ACTIVITY', subtitle: 'TRAFFIC ACCIDENT AHEAD', type: 'police', icon: '👮' }
   ]);
 
   useEffect(() => {
@@ -114,6 +117,7 @@ function App() {
       setPois(fetchedPois);
       setLastSynced(new Date());
       await saveOfflineData(coords.lat, coords.lng, fetchedPois);
+      setIsPhoneMenuOpen(false); // Close sidebar menu inside phone on search success
     } catch (err) {
       setError('Failed to fetch data for manual location.');
       console.error(err);
@@ -128,17 +132,17 @@ function App() {
     : pois.filter(p => p.category === categoryFilter);
 
   return (
-    <div className="min-h-screen bg-[#060913] text-slate-100 flex flex-col items-center justify-center p-4 md:p-8 overflow-x-hidden font-sans relative selection:bg-red-500/30">
+    <div className="min-h-screen bg-[#070b16] text-slate-100 flex flex-col items-center justify-center p-2 md:p-6 overflow-x-hidden font-sans relative selection:bg-red-500/30">
       
-      {/* Decorative futuristic background glow meshes */}
-      <div className="absolute top-10 left-10 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-red-900/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
-      <div className="absolute bottom-10 right-10 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-blue-950/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
+      {/* Decorative neon backdrops */}
+      <div className="absolute top-10 left-10 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-red-950/15 rounded-full blur-[110px] pointer-events-none z-0"></div>
+      <div className="absolute bottom-10 right-10 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-blue-950/20 rounded-full blur-[130px] pointer-events-none z-0"></div>
       
-      {/* Main Container: Simulator layout split */}
+      {/* Master Layout */}
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center z-10">
         
-        {/* Left Side: App Pitch, Controls and Status Indicators */}
-        <div className="lg:col-span-5 space-y-6 text-center lg:text-left">
+        {/* Left Side Panel: Info, Search and Local Features */}
+        <div className="lg:col-span-5 space-y-5 text-center lg:text-left px-2">
           <div className="flex items-center justify-center lg:justify-start space-x-3">
             <div className="p-2.5 bg-gradient-to-tr from-red-600 to-red-500 rounded-xl shadow-lg shadow-red-500/20">
               <ShieldAlert size={28} className="text-white" />
@@ -151,220 +155,163 @@ function App() {
             </div>
           </div>
           
-          <p className="text-slate-300 text-sm md:text-base leading-relaxed">
-            A state-of-the-art Progressive Web App designed to assist during the critical highway 'Golden Hour'. Built to be fully functional inside cellular coverage dead zones using localized databases.
+          <p className="text-slate-300 text-sm leading-relaxed">
+            A state-of-the-art emergency assistant built to survive cellular gaps and provide critical location mapping during highway accidents.
           </p>
 
-          {/* Quick simulator controller controls */}
-          <div className="bg-[#111827]/80 backdrop-blur-md rounded-2xl p-5 border border-slate-800 space-y-4 shadow-xl">
+          {/* Controller */}
+          <div className="bg-[#0f1423]/90 backdrop-blur-md rounded-2xl p-4 border border-slate-800 space-y-3.5 shadow-xl text-left">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-              <Cpu size={14} className="text-red-400" /> Simulation Control Panel
+              ⚙️ Simulator Configuration
             </h3>
             
             <div className="flex items-center justify-between gap-4">
-              <span className="text-xs text-slate-300 font-medium">Demo/Mockup Data Mode:</span>
+              <span className="text-xs text-slate-300">Hackathon Mockup Mode:</span>
               <button 
                 onClick={() => setIsDemoMode(!isDemoMode)}
-                className={`px-4 py-1.5 rounded-lg flex items-center space-x-1.5 text-xs font-bold transition-all border ${isDemoMode ? 'bg-red-500/20 text-red-400 border-red-500/40 shadow-lg shadow-red-500/5' : 'bg-slate-800 text-slate-400 border-slate-700'}`}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition border ${isDemoMode ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-slate-800 text-slate-400 border-slate-700'}`}
               >
-                <Beaker size={13} />
-                <span>{isDemoMode ? 'Active: Hackathon Mode' : 'Standard API Mode'}</span>
+                {isDemoMode ? 'DEMO: ON' : 'LIVE API'}
               </button>
             </div>
 
-            <div className="flex items-center justify-between gap-4 border-t border-slate-800/80 pt-3">
-              <span className="text-xs text-slate-300 font-medium">Cellular Status:</span>
-              <div className="flex items-center space-x-1.5">
-                {isOffline ? (
-                  <div className="flex items-center space-x-1 text-orange-400 bg-orange-950/30 px-2.5 py-1 rounded-lg text-xs font-bold border border-orange-500/20">
-                    <WifiOff size={13} />
-                    <span>0 Bars (Offline Cache Active)</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-1 text-emerald-400 bg-emerald-950/30 px-2.5 py-1 rounded-lg text-xs font-bold border border-emerald-500/20">
-                    <span>LTE Connected</span>
-                  </div>
-                )}
-              </div>
+            <div className="flex items-center justify-between gap-4 border-t border-slate-800/80 pt-2.5">
+              <span className="text-xs text-slate-300">Network Connectivity:</span>
+              <span className="text-xs text-slate-400 font-bold uppercase">
+                {isOffline ? '⚠️ Offline-First Storage' : '🟢 LTE Online Sync'}
+              </span>
             </div>
           </div>
 
-          <div className="hidden lg:block space-y-3">
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Global Coverage Index</h4>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { label: '🇮🇳 Delhi', q: 'New Delhi, India' },
-                { label: '🇮🇳 Mumbai', q: 'Mumbai, India' },
-                { label: '🇺🇸 New York', q: 'New York, USA' },
-                { label: '🇬🇧 London', q: 'London, UK' },
-                { label: '🇯🇵 Tokyo', q: 'Tokyo, Japan' },
-              ].map(city => (
-                <button
-                  key={city.q}
-                  onClick={() => { setManualLocation(city.q); }}
-                  className="px-2.5 py-1 text-[11px] font-bold bg-[#111827]/60 text-slate-400 rounded-full border border-slate-800 hover:border-red-500/40 hover:text-red-400 transition-all"
-                >
-                  {city.label}
-                </button>
-              ))}
-            </div>
+          {/* Desktop Left Side Accordion of Dashboard Features */}
+          <div className="hidden lg:block space-y-4 max-h-[350px] overflow-y-auto pr-1 scrollbar-thin">
+            <SpeedMonitor location={location} />
+            <AccidentGuide />
+            <EmergencyNumbers />
+            <AccidentReport location={location} address={address} pois={pois} />
+            <AccidentHotspots location={location} />
           </div>
         </div>
         
-        {/* Right Side: Smartphone Bezel Frame Simulator (WOW factor matching mockups) */}
+        {/* Right Side: Smartphone Bezel Frame Simulator (WOW factor matching mockup exactly) */}
         <div className="lg:col-span-7 flex justify-center items-center relative">
           
-          {/* Smartphone Bezel */}
-          <div className="relative w-[370px] h-[750px] bg-[#0c1221] rounded-[52px] shadow-2xl border-[12px] border-slate-900 flex flex-col overflow-hidden ring-1 ring-slate-800/50">
+          {/* Smartphone Frame Bezel */}
+          <div className="relative w-[360px] h-[720px] bg-[#0c1221] rounded-[48px] shadow-2xl border-[11px] border-slate-900 flex flex-col overflow-hidden ring-1 ring-slate-800/50">
             
-            {/* Top Speaker Notch (Dynamic Island style) */}
-            <div className="absolute top-3 left-1/2 transform -translate-x-1/2 w-[110px] h-[28px] bg-black rounded-full z-[1000] flex items-center justify-center border border-slate-900">
-              <div className="w-[10px] h-[10px] bg-[#1e2330] rounded-full mr-2"></div>
-              <div className="w-[45px] h-[4px] bg-[#1a1c24] rounded-full"></div>
+            {/* Top Speaker Notch (Dynamic Island) */}
+            <div className="absolute top-2.5 left-1/2 transform -translate-x-1/2 w-[100px] h-[24px] bg-black rounded-full z-[1000] flex items-center justify-center border border-slate-900">
+              <div className="w-[8px] h-[8px] bg-[#1e2330] rounded-full mr-2"></div>
+              <div className="w-[40px] h-[3px] bg-[#1a1c24] rounded-full"></div>
             </div>
 
-            {/* Status bar (Mockup style header alignment) */}
-            <div className="pt-2 px-6 flex justify-between items-center text-[11px] font-bold text-slate-300 z-[999] bg-[#0c1221] shrink-0 h-[28px]">
+            {/* Status bar */}
+            <div className="pt-2 px-6 flex justify-between items-center text-[10px] font-bold text-slate-300 z-[999] bg-transparent shrink-0 h-[26px]">
               <div>21:07</div>
-              <div className="flex items-center space-x-1.5">
-                <span className="text-[10px]">📶</span>
-                <span className="text-[10px]">🔋 88%</span>
+              <div className="flex items-center space-x-1">
+                <span className="text-[9px]">📶</span>
+                <span className="text-[9px]">5G</span>
+                <span className="text-[9px]">🔋</span>
               </div>
             </div>
 
-            {/* Scrollable Simulator App Body */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide bg-[#0c1221] px-4 pb-20 pt-1 space-y-4">
+            {/* Simulated Mobile Viewport Container */}
+            <div className="flex-1 relative overflow-hidden bg-slate-950 flex flex-col">
               
-              {/* Active Incident Warning Indicator */}
-              <div className="flex items-center justify-between bg-red-950/30 border border-red-500/30 p-2.5 rounded-xl text-xs font-bold text-red-400 shadow-lg shadow-red-500/5">
-                <div className="flex items-center gap-1.5">
-                  <AlertCircle size={14} className="animate-pulse" />
-                  <span>ACTIVE EMERGENCY DECK ENABLED</span>
-                </div>
-                <span className="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">INCIDENTS: 18</span>
+              {/* FULL BLEED BACKGROUND MAP (Matches the mockup exactly) */}
+              <div className="absolute inset-0 z-0 w-full h-full">
+                <MapWrapper location={location} pois={filteredPois} isFullBleed={true} />
               </div>
 
-              {/* Glowing SOS Button component */}
-              <SOSButton location={location} address={address} />
+              {/* Floating Menu Button Trigger Inside Mobile App */}
+              <button 
+                onClick={() => setIsPhoneMenuOpen(true)}
+                className="absolute top-4 left-4 z-[999] pointer-events-auto p-2 bg-[#0c1221]/95 border border-slate-800 text-white rounded-xl shadow-lg backdrop-blur-md hover:bg-slate-900 transition"
+              >
+                <Menu size={16} />
+              </button>
 
-              {/* Location display card */}
-              <div className="bg-[#111827] rounded-2xl p-3 border border-slate-800 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2 truncate">
-                    <div className="p-1.5 bg-red-500/10 text-red-400 rounded-lg">
-                      <MapPin size={16} />
-                    </div>
-                    <div className="truncate">
-                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Current Location</p>
-                      <p className="text-xs font-bold text-slate-200 truncate">
-                        {loading && !isSearchingLocation ? 'GPS Syncing...' : (address?.display_name || 'Acquiring Lat/Lng...')}
-                      </p>
-                    </div>
-                  </div>
-                  <button onClick={initData} className="p-1.5 text-slate-500 hover:text-red-400 transition" title="Use GPS Location">
-                    <RefreshCw size={16} className={loading && !isSearchingLocation ? 'animate-spin' : ''} />
-                  </button>
-                </div>
-                <form onSubmit={handleManualSearch} className="flex items-center space-x-2 border-t border-slate-800 pt-2">
-                  <input 
-                    type="text" 
-                    placeholder="Search coordinates offline..." 
-                    value={manualLocation}
-                    onChange={(e) => setManualLocation(e.target.value)}
-                    className="flex-1 text-[11px] p-2 rounded-lg bg-slate-950 text-white border border-transparent focus:border-red-500 outline-none transition-all"
-                  />
-                  <button type="submit" disabled={loading} className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition">
-                    <Search size={12} />
-                  </button>
-                </form>
-              </div>
-
-              {/* Speed Monitor Widget */}
-              <SpeedMonitor location={location} />
-
-              {/* Local Triage / Accident Guide */}
-              <AccidentGuide />
-
-              {/* Emergency Hotline Directories */}
-              <EmergencyNumbers />
-
-              {/* Automated Incident Report Creator */}
-              <AccidentReport location={location} address={address} pois={pois} />
-
-              {/* Accident Hotspots map alerts */}
-              <AccidentHotspots location={location} />
-
-              {/* Nearby list section inside simulator */}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center px-1">
-                  <h3 className="text-sm font-bold text-white">Emergency Services</h3>
-                  <span className="text-[10px] font-bold bg-blue-950 text-blue-300 px-2 py-0.5 rounded-full border border-blue-900/50">
-                    {pois.length} cached contacts
-                  </span>
-                </div>
+              {/* FLOATING HEADER & SOS BUTTON (Overlayed on top of the Map) */}
+              <div className="absolute top-4 inset-x-0 z-[500] pointer-events-none flex flex-col items-center px-4 space-y-3">
                 
-                {/* Category Filters */}
-                <div className="flex space-x-1.5 overflow-x-auto pb-1 scrollbar-hide">
-                  {['all', 'hospital', 'pharmacy', 'police', 'fire'].map(cat => (
-                    <button
-                      key={cat}
-                      onClick={() => setCategoryFilter(cat)}
-                      className={`px-3 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap border transition-all ${
-                        categoryFilter === cat 
-                          ? 'bg-red-600 text-white border-red-500' 
-                          : 'bg-[#111827] text-slate-400 border-slate-800 hover:text-slate-200'
-                      }`}
-                    >
-                      {cat.toUpperCase()}
-                    </button>
-                  ))}
+                {/* Simulated header title */}
+                <div className="w-full max-w-[200px] mx-auto text-center pointer-events-auto bg-[#0c1221]/90 backdrop-blur-md border border-slate-800/80 px-4 py-1.5 rounded-full shadow-lg">
+                  <h2 className="text-[10px] text-white font-bold tracking-widest uppercase mb-0.5">Emergency Map</h2>
+                  <p className="text-[8px] text-slate-500 uppercase tracking-widest font-bold">Active Incidents: 18</p>
                 </div>
 
-                {error && (
-                  <div className="p-2 bg-yellow-950/20 text-yellow-400 rounded-lg text-center text-[10px] font-bold border border-yellow-900/30">
-                    ⚠️ {error}
-                  </div>
-                )}
-
-                {/* Leaflet Map Preview (Widescreen Mockup Style) */}
-                <div className="rounded-2xl overflow-hidden border border-slate-800 shadow-md">
-                  <MapWrapper location={location} pois={filteredPois} />
+                {/* Floating SOS button */}
+                <div className="pointer-events-auto mt-2">
+                  <SOSButton location={location} address={address} />
                 </div>
-                
-                {/* Emergency Contacts List */}
-                <EmergencyList location={location} pois={filteredPois} />
               </div>
 
-              {/* Current alerts bottom drawer panel matching the mockup exactly */}
-              <div className="bg-[#111827]/90 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-xl">
-                <div className="flex justify-between items-center pb-2 border-b border-slate-800/80">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Current Alerts ({mockAlerts.length})</span>
-                  <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+              {/* FLOATING CURRENT ALERTS DRAWER (At the bottom overlaying the Map) */}
+              <div className="absolute bottom-4 inset-x-4 z-[500] pointer-events-auto bg-[#0c1221]/95 border border-slate-800/90 rounded-2xl p-3 shadow-2xl backdrop-blur-md space-y-2">
+                <div className="flex justify-between items-center pb-1.5 border-b border-slate-800/60">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Current Alerts ({mockAlerts.length})</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5 max-h-[140px] overflow-y-auto scrollbar-none">
                   {mockAlerts.map(alert => (
-                    <div key={alert.id} className="flex justify-between items-center text-xs p-2 bg-[#0c1221] rounded-xl border border-slate-900">
+                    <div key={alert.id} className="flex justify-between items-center text-[10px] p-2 bg-[#060913]/90 rounded-xl border border-slate-900/60">
                       <div className="flex items-center gap-2">
-                        <span className="text-red-500">🔥</span>
+                        <span className="text-xs">{alert.icon}</span>
                         <div>
-                          <p className="font-bold text-slate-200">{alert.title}</p>
-                          <p className="text-[10px] text-slate-500">{alert.detail}</p>
+                          <p className="font-bold text-slate-200 tracking-wide">{alert.title}</p>
+                          <p className="text-[8px] text-slate-500 font-medium">{alert.subtitle}</p>
                         </div>
                       </div>
-                      <span className="text-[10px] bg-red-950/30 text-red-400 border border-red-900/30 px-2 py-0.5 rounded-md font-bold">Active</span>
+                      <span className="text-[8px] bg-red-950/40 text-red-400 border border-red-900/40 px-1.5 py-0.5 rounded-md font-bold uppercase">Active</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Bottom footer text inside app */}
-              <p className="text-[9px] text-slate-600 text-center pt-2">
-                Offline-First Spatial Directory | Road Safety Hackathon 2026
-              </p>
+              {/* SLIDE-OUT PANEL INSIDE SIMULATOR (To access search, directory, guide, etc. on mobile) */}
+              {isPhoneMenuOpen && (
+                <div className="absolute inset-0 z-[1000] bg-[#0c1221]/98 backdrop-blur-md flex flex-col p-4 space-y-4 animate-fade-in">
+                  <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">Project Console</span>
+                    <button 
+                      onClick={() => setIsPhoneMenuOpen(false)}
+                      className="p-1.5 bg-slate-800 text-slate-400 rounded-lg hover:text-white"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin">
+                    {/* Location Card */}
+                    <div className="bg-[#111827] rounded-xl p-3 border border-slate-800 space-y-2">
+                      <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Search Coordinate Index</p>
+                      <form onSubmit={handleManualSearch} className="flex items-center space-x-2">
+                        <input 
+                          type="text" 
+                          placeholder="Search Delhi, London..." 
+                          value={manualLocation}
+                          onChange={(e) => setManualLocation(e.target.value)}
+                          className="flex-1 text-[11px] p-2 rounded-lg bg-slate-950 text-white border border-transparent focus:border-red-500 outline-none"
+                        />
+                        <button type="submit" className="p-2 bg-red-600 text-white rounded-lg">
+                          <Search size={12} />
+                        </button>
+                      </form>
+                    </div>
+
+                    {/* Speed, hotline andguide directories */}
+                    <SpeedMonitor location={location} />
+                    <AccidentGuide />
+                    <EmergencyNumbers />
+                    <EmergencyList location={location} pois={filteredPois} />
+                  </div>
+                </div>
+              )}
+
             </div>
 
             {/* Bottom Home Indicator Bar (Swipe Bar) */}
-            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-[130px] h-[5px] bg-slate-700 rounded-full z-[1000]"></div>
+            <div className="absolute bottom-1.5 left-1/2 transform -translate-x-1/2 w-[120px] h-[4px] bg-slate-700 rounded-full z-[1000]"></div>
           </div>
           
         </div>
